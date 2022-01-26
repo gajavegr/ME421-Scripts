@@ -3,33 +3,34 @@ close all
 clc
 
 %read the data file
-data_with_header = xlsread('shakedown_prep');
+% data_with_header = xlsread('shakedown_prep');
+% data = xlsread('1pre-shakedown data');
 %sample data
 data_with_header = csvread('sample_data.csv');
 data = data_with_header(11:end,:);
 t = data(:,1);
 v = data(:,2);
-num_channels = data_with_header(1,2)
-num_samples = data_with_header(2,2)
-acquisition_date = data_with_header(3,2)
-acquisition_time = data_with_header(4,2)
+% num_channels = data_with_header(1,2)
+% num_samples = data_with_header(2,2)
+% acquisition_date = data_with_header(3,2)
+% acquisition_time = data_with_header(4,2)
 
 %% measured value definition
-m_measured=0;
-r_measured=0;
-d_measured=0;
-s_measured=0;
-rpm_measured = 0;
+m_measured=0.130;   %kg
+r_measured=70;      %mm
+d_measured=250;     %mm
+s_measured=330;     %mm
+rpm_measured = 300;
 omega_measured = rpm_measured *(1/60)*2*pi;  %rad/s
 U_measured = m_measured*r_measured*d_measured;
 F_experimental_expected = U_measured*(omega_measured^2)/s_measured;
 %% Expected value definition
-U_expected = 0;
-m_expected = 0;
-r_expected=0;
-d_expected=0;
-s_expected=0;
-rpm_expected= 0;
+U_expected = 2275;
+m_expected = 0.13;
+r_expected=70;
+d_expected=250;
+s_expected=330;
+rpm_expected= 300;
 omega_expected = rpm_expected *(1/60)*2*pi;  %rad/s
 F_theoretical_expected = U_expected*(omega_expected^2)/s_expected;
 %% sensor parameters
@@ -45,7 +46,7 @@ F_theoretical_expected = U_expected*(omega_expected^2)/s_expected;
 % sensitivity = (max_voltage-min_voltage)/(max_load-min_load);
 [excitation_voltage,rated_output,max_voltage,min_voltage,max_load,min_load,zero_balance,sensitivity] = lcl_005(10,2,0.113,0.3);
 %% get output
-output_newtons = v*(1/sensitivity);
+output_newtons = v/sensitivity;
 sample_rate = 1/(t(2)-t(1));    %Hz
 %% visualize data
 close all
@@ -57,6 +58,7 @@ hold on
 yline(0);
 yline(max_load,'--r');
 yline(min_load,'--k');
+axis([0 10 0 0.01])
 %% get a dft of the force data
 close all
 y = output_newtons;
@@ -98,7 +100,7 @@ A(2:N/2) = 2*ck(2:N/2); % remaining elements of array are doubled
 subplot(3,1,3); % graph the corrected spectrum
 stem(f,A, 'filled', 'MarkerSize', 4)
 xlabel('Frequency (Hz)'), ylabel('Force [N]'), grid on
-axis([0 310 0 max(A)*1.01])
+axis([0 10 0 max(A)*1.01])
 %% Get force at 300 RPM
 target_rpm = 300;
 omega_300=target_rpm*(1/60)*2*pi;  %rad/s
@@ -133,26 +135,24 @@ wf_rel = (100*w_f)/f_measured
 w_dft = sqrt((1/(2*N))*w_f^2)
 
 %uncertainty in mass
-w_m = sqrt(2)*0.005;  %g
+w_m = sqrt(2)*0.005*10^(-3);  %kg
 w_m_rel = 100*w_m/m_measured
 
 %uncertainty in radius
-w_r = 0.014;  %mm
+w_r = 0.05;  %mm
 w_r_rel = 100*w_r/r_measured
 
 %uncertainty in couple distance
-w_d = 0.014;  %mm
+w_d = 1.22;  %mm
 w_d_rel = 100*w_d/d_measured
-
-%uncertainty in bearing distance
-w_s = 0.014;  %mm
-w_s_rel = 100*w_s/s_measured
 
 %uncertainty in unbalance
 dudr = m_measured*d_measured;
 dudm = r_measured*d_measured;
 dudd = m_measured*r_measured;
 w_u = (dudr*w_r)^2+(dudm*w_m)^2+(dudd*w_d)^2
+
+
 
 %uncertainty in slope
 mean_force = mean(measured_forces);

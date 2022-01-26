@@ -1,6 +1,6 @@
 %create sample data for load cell interpretation
-%For an unbalance of 1500kg-mm^2 we expect:
-% Fc = 4.486N (~5N)
+%For an unbalance of 2275kg-mm^2 we expect:
+% Fc = 6.804045460N (~6.8N)
 
 %record Length: 10s
 clear
@@ -10,13 +10,14 @@ Tr = 10;    %s
 fs = 1000;  %Hz
 rpm=300;    %rpm
 omega=rpm*(1/60)*2*pi;  %rad/s
+expected_force = 6.8;   %N
 %% define sensor parameters
 [excitation_voltage,rated_output,max_voltage,min_voltage,max_load,min_load,zero_balance,sensitivity] = lcl_005(10,2,0.113,0.3);
 %% fake/noisy data time
 t = 0:1/fs:Tr;
 omega_hz = 1/(2*pi)*omega;  %Hz
 b = 2*pi*omega_hz;
-measurand = 5*sin(b*t)+0.5*rand(size(t));   %N
+measurand = expected_force*sin(b*t)+0.5*rand(size(t));   %N
 v = measurand*sensitivity;
 figure
 plot(t,measurand)
